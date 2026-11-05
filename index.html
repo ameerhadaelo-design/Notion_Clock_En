@@ -12,7 +12,7 @@
 :root[data-theme=dark]{--panel:#1d1822;--text:#f0e6ee}
 *{box-sizing:border-box}
 html,body{height:100%;margin:0;background:transparent;font-family:'Quicksand',system-ui,sans-serif;overflow:hidden}
-#stage{height:100%;display:flex;align-items:center;justify-content:center}
+#stage{height:100%;display:flex;align-items:center;justify-content:center;padding:8px}
 #clock{position:relative;transform:scale(var(--scale));min-width:240px;border-radius:var(--radius);border:2px solid var(--accent);overflow:hidden;text-align:center;touch-action:none}
 #photo,#tint{position:absolute;inset:0;background-size:cover;background-position:center}
 #tint{background:var(--bg);opacity:var(--bga)}
@@ -88,7 +88,7 @@ hr{border:0;border-top:1px solid var(--accent);opacity:.4;margin:12px 0}
   <div class="row"><label for="lang">Language</label><select id="lang"><option value="en">English</option><option value="ja">日本語</option><option value="ko">한국어</option><option value="es">Español</option></select></div>
   <h3>Size and glow</h3>
   <div class="row"><label for="fs">Font size</label><input type="range" id="fs" min="20" max="140"></div>
-  <div class="row"><label for="scale">Widget scale</label><input type="range" id="scale" min="50" max="200"></div>
+  <div class="row"><label for="scale">Widget scale (100 = fill frame)</label><input type="range" id="scale" min="50" max="200"></div>
   <div class="row"><label for="glow">Glow intensity</label><input type="range" id="glow" min="0" max="40"></div>
   <h3>Colors</h3>
   <div id="colors"></div>
@@ -161,7 +161,15 @@ function tick(){
     $('time').innerHTML=t.trim()+(ap?`<span id="ampm">${ap.trim()}</span>`:'');
   }
   $('date').textContent=S.showdate?new Intl.DateTimeFormat(S.lang,{timeZone:tz,weekday:'long',day:'numeric'}).format(now):'';
+  fit();
 }
+function fit(){
+  const c=$('clock'),w=c.offsetWidth,h=c.offsetHeight;
+  if(!w||!h)return;
+  const k=Math.min((innerWidth-16)/w,(innerHeight-16)/h)*S.scale/100;
+  document.documentElement.style.setProperty('--scale',k);
+}
+addEventListener('resize',fit);
 function renderStk(){
   $('stickers').innerHTML='';
   S.stk.forEach(s=>{
