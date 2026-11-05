@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Clock</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&family=Share+Tech+Mono&family=VT323&family=Press+Start+2P&family=DM+Mono&family=Space+Mono&family=Major+Mono+Display&family=Audiowide&family=Bungee&family=Righteous&family=Pacifico&family=Quicksand:wght@500&family=Syne+Mono&family=Silkscreen&family=Pixelify+Sans&family=DotGothic16&family=Jersey+10&family=Tiny5&family=Micro+5&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#fff7fb;--ink:#c2417f;--glow:#ff8ac4;--accent:#e9a3c9;--panel:#fff;--text:#3b2a35;--radius:28px;--glowpx:12px;--fs:64px;--scale:1;--bga:1}
+@media (prefers-color-scheme:dark){:root[data-theme=auto]{--panel:#1d1822;--text:#f0e6ee}}
+:root[data-theme=dark]{--panel:#1d1822;--text:#f0e6ee}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;background:transparent;font-family:'Quicksand',system-ui,sans-serif;overflow:hidden}
+#stage{height:100%;display:flex;align-items:center;justify-content:center}
+#clock{position:relative;transform:scale(var(--scale));min-width:240px;border-radius:var(--radius);border:2px solid var(--accent);overflow:hidden;text-align:center;touch-action:none}
+#photo,#tint{position:absolute;inset:0;background-size:cover;background-position:center}
+#tint{background:var(--bg);opacity:var(--bga)}
+#bar{position:relative;display:none;align-items:center;justify-content:space-between;padding:5px 8px;background:var(--accent);color:var(--bg);font-family:'Press Start 2P',monospace;font-size:10px;border-bottom:2px solid var(--accent)}
+#bar i{display:inline-block;width:10px;height:10px;margin-left:5px;border:2px solid var(--bg);background:transparent}
+#bar i:nth-child(2){border-radius:50%}
+#clock.retro #bar{display:flex}
+#clock.retro{box-shadow:4px 4px 0 var(--accent)}
+#body{position:relative;padding:20px 32px 16px}
+#label{color:var(--accent);font-size:calc(var(--fs)*.22);min-height:0}
+#time{color:var(--ink);font-size:var(--fs);line-height:1.05;white-space:nowrap;text-shadow:0 0 var(--glowpx) var(--glow);font-variant-numeric:tabular-nums}
+#ampm{font-size:.38em;margin-left:.2em;vertical-align:.7em}
+#date{margin-top:8px;color:var(--accent);font-size:calc(var(--fs)*.26);min-height:1em}
+#analog{display:none;width:calc(var(--fs)*3);height:calc(var(--fs)*3);margin:0 auto;filter:drop-shadow(0 0 var(--glowpx) var(--glow))}
+#analog *{stroke:var(--ink);fill:none;stroke-linecap:round}
+.stk{position:absolute;transform:translate(-50%,-50%);display:flex;align-items:center;justify-content:center;background-size:cover;background-position:center;pointer-events:none;user-select:none}
+.edit .stk{pointer-events:auto;cursor:grab;outline:1px dashed var(--accent)}
+.stk.sel{outline:2px solid var(--ink)}
+#gear{position:fixed;top:8px;right:8px;width:30px;height:30px;border:0;border-radius:50%;background:var(--panel);color:var(--text);opacity:.35;cursor:pointer;font-size:16px;z-index:5}
+#gear:hover,#gear:focus-visible{opacity:1}
+#panel{position:fixed;inset:0;background:var(--panel);color:var(--text);overflow:auto;padding:14px 16px 24px;display:none;font-size:14px;z-index:9}
+#panel.open{display:block}
+#panel h2{margin:0 0 10px;font-size:16px;display:flex;justify-content:space-between;align-items:center}
+h3{margin:14px 0 4px;font-size:13px}
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:9px 0}
+.row label{flex:1}
+select,input[type=text],textarea{background:transparent;color:inherit;border:1px solid var(--accent);border-radius:8px;padding:5px 7px;font:inherit}
+input[type=range]{width:130px;accent-color:var(--ink)}
+input[type=color]{width:38px;height:30px;border:0;padding:0;background:none;cursor:pointer}
+.hex{width:84px}.op{width:70px!important}
+button.btn{border:1px solid var(--accent);background:transparent;color:inherit;border-radius:8px;padding:6px 10px;font:inherit;cursor:pointer}
+textarea{width:100%;height:56px;font-size:11px}
+hr{border:0;border-top:1px solid var(--accent);opacity:.4;margin:12px 0}
+#tools{position:fixed;left:0;right:0;bottom:0;background:var(--panel);color:var(--text);padding:8px 12px;display:none;font-size:12px;z-index:8;border-top:1px solid var(--accent)}
+.edit #tools{display:block}
+#tools .row{margin:4px 0}
+</style>
+</head>
+<body>
+<div id="stage"><div id="clock">
+  <div id="photo"></div><div id="tint"></div>
+  <div id="bar"><span id="title"></span><span><i></i><i></i><i></i></span></div>
+  <div id="body">
+    <div id="label"></div>
+    <div id="time"></div>
+    <svg id="analog" viewBox="-50 -50 100 100"><circle r="47" stroke-width="1.5"/><g id="ticks" stroke-width="1.5"></g><line id="hh" y2="-24" stroke-width="3"/><line id="mh" y2="-35" stroke-width="2"/><line id="sh" y2="-39" stroke-width="1"/><circle r="2" style="fill:var(--ink)"/></svg>
+    <div id="date"></div>
+  </div>
+  <div id="stickers"></div>
+</div></div>
+<button id="gear" aria-label="Settings">⚙</button>
+
+<div id="tools">
+  <div class="row"><label>Width</label><input type="range" id="sw" min="16" max="300"><label>Height</label><input type="range" id="sh2" min="16" max="300"></div>
+  <div class="row"><select id="sshape"><option value="0">Square</option><option value="1">Curved</option><option value="2">Circle</option></select><button class="btn" id="sdel">Delete</button><button class="btn" id="sdone">Done</button></div>
+</div>
+
+<div id="panel">
+  <h2>Clock settings <button class="btn" id="close">Done</button></h2>
+  <h3>Style</h3>
+  <div class="row"><label for="skin">Look</label><select id="skin"><option value="modern">Modern</option><option value="retro">Retro window</option></select></div>
+  <div class="row"><label for="face">Face</label><select id="face"><option value="digital">Digital</option><option value="analog">Analog</option></select></div>
+  <div class="row"><label for="font">Font</label><select id="font"></select></div>
+  <div class="row"><label for="shape">Corners</label><select id="shape"><option value="curved">Curved</option><option value="square">Square</option></select></div>
+  <div class="row"><label for="theme">Theme</label><select id="theme"><option value="auto">Match device</option><option value="light">Light</option><option value="dark">Dark</option></select></div>
+  <h3>Time</h3>
+  <div class="row"><label for="hour12">Format</label><select id="hour12"><option value="1">12 hour</option><option value="0">24 hour</option></select></div>
+  <div class="row"><label for="tz">Time zone</label><select id="tz"></select></div>
+  <div class="row"><label for="lbl">Label (window title in retro)</label><input type="text" id="lbl" class="hex" style="width:110px" maxlength="24"></div>
+  <div class="row"><label for="seconds">Show seconds</label><input type="checkbox" id="seconds"></div>
+  <div class="row"><label for="showdate">Show date</label><input type="checkbox" id="showdate"></div>
+  <div class="row"><label for="lang">Language</label><select id="lang"><option value="en">English</option><option value="ja">日本語</option><option value="ko">한국어</option><option value="es">Español</option></select></div>
+  <h3>Size and glow</h3>
+  <div class="row"><label for="fs">Font size</label><input type="range" id="fs" min="20" max="140"></div>
+  <div class="row"><label for="scale">Widget scale</label><input type="range" id="scale" min="50" max="200"></div>
+  <div class="row"><label for="glow">Glow intensity</label><input type="range" id="glow" min="0" max="40"></div>
+  <h3>Colors</h3>
+  <div id="colors"></div>
+  <h3>Photo and stickers</h3>
+  <div class="row"><label>Background photo</label><input type="file" id="photoIn" accept="image/*" style="width:150px"><button class="btn" id="photoX">Remove</button></div>
+  <div class="row"><label for="photoA">Photo opacity</label><input type="range" id="photoA" min="0" max="100"></div>
+  <div class="row"><input type="text" id="emoji" class="hex" placeholder="✨ 🎀" maxlength="4"><button class="btn" id="addE">Add emoji</button><input type="file" id="stkIn" accept="image/*" style="width:110px"></div>
+  <div class="row"><button class="btn" id="edit">Move and resize stickers</button></div>
+  <hr>
+  <div class="row"><label>Backup code (move settings between devices)</label></div>
+  <textarea id="code" spellcheck="false"></textarea>
+  <div class="row"><button class="btn" id="copy">Copy code</button><button class="btn" id="load">Load code</button><button class="btn" id="reset">Reset</button></div>
+</div>
+
+<script>
+const FONTS=['Quicksand','Orbitron','Share Tech Mono','VT323','Press Start 2P','DM Mono','Space Mono','Major Mono Display','Audiowide','Bungee','Righteous','Pacifico','Syne Mono','Silkscreen','Pixelify Sans','DotGothic16','Jersey 10','Tiny5','Micro 5'];
+const ZONES=['','America/Los_Angeles','America/Denver','America/Chicago','America/New_York','America/Sao_Paulo','Europe/London','Europe/Paris','Africa/Cairo','Asia/Dubai','Asia/Kolkata','Asia/Bangkok','Asia/Shanghai','Asia/Seoul','Asia/Tokyo','Australia/Sydney','Pacific/Auckland'];
+const DEF={skin:'modern',face:'digital',font:'Quicksand',hour12:'1',tz:'',lbl:'',seconds:false,showdate:true,lang:'en',shape:'curved',theme:'auto',fs:64,scale:100,glow:12,
+  ink:'#c2417f',inkA:100,glowC:'#ff8ac4',glowA:100,accent:'#e9a3c9',accentA:100,bg:'#fff7fb',bgA:100,photo:'',photoA:100,stk:[]};
+const COLORS=[['ink','Display color'],['glowC','Glow color'],['accent','Accent (border, date, title bar)'],['bg','Clock box background']];
+const KEY='clock-widget-v2';
+let S=JSON.parse(JSON.stringify(DEF)),sel=null;
+try{const r=localStorage.getItem(KEY);if(r)S={...S,...JSON.parse(r)}}catch(e){}
+const $=id=>document.getElementById(id);
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){alert('Not enough storage for that image. Try a smaller one.')}};
+const enc=()=>btoa(unescape(encodeURIComponent(JSON.stringify(S))));
+const rgba=(hex,a)=>{const h=/^#[0-9a-f]{6}$/i.test(hex)?hex:'#000000';const n=parseInt(h.slice(1),16);return `rgba(${n>>16},${(n>>8)&255},${n&255},${a/100})`};
+
+const PIX=['Press Start 2P','VT323','Silkscreen','Pixelify Sans','DotGothic16','Jersey 10','Tiny5','Micro 5'];
+$('font').innerHTML=`<option>Pixel</option><optgroup label="More pixel fonts">${PIX.map(f=>`<option>${f}</option>`).join('')}</optgroup><optgroup label="Other">${FONTS.filter(f=>!PIX.includes(f)).map(f=>`<option>${f}</option>`).join('')}</optgroup>`;
+$('tz').innerHTML=ZONES.map(z=>`<option value="${z}">${z||'Device time zone'}</option>`).join('');
+$('colors').innerHTML=COLORS.map(([k,l])=>`<div class="row"><label>${l}</label>
+ <input type="color" data-c="${k}"><input type="text" class="hex" data-h="${k}" maxlength="7" aria-label="${l} hex">
+ <input type="range" class="op" data-a="${k}" min="0" max="100" aria-label="${l} opacity"></div>`).join('');
+$('ticks').innerHTML=[...Array(12)].map((_,i)=>`<line y1="-43" y2="-${i%3?40:37}" transform="rotate(${i*30})"/>`).join('');
+
+function compress(file,max,cb){const fr=new FileReader();fr.onload=()=>{const im=new Image();im.onload=()=>{const k=Math.min(1,max/Math.max(im.width,im.height));const c=document.createElement('canvas');c.width=im.width*k;c.height=im.height*k;c.getContext('2d').drawImage(im,0,0,c.width,c.height);cb(c.toDataURL('image/jpeg',.7))};im.src=fr.result};fr.readAsDataURL(file)}
+
+function apply(){
+  const r=document.documentElement.style;
+  r.setProperty('--ink',rgba(S.ink,S.inkA));r.setProperty('--glow',rgba(S.glowC,S.glowA));
+  r.setProperty('--accent',rgba(S.accent,S.accentA));r.setProperty('--bg',S.bg);r.setProperty('--bga',S.bgA/100);
+  r.setProperty('--glowpx',S.glow+'px');r.setProperty('--fs',S.fs+'px');r.setProperty('--scale',S.scale/100);
+  r.setProperty('--radius',S.shape==='curved'?(S.skin==='retro'?'12px':'28px'):'0px');
+  document.documentElement.dataset.theme=S.theme;
+  const c=$('clock');c.style.fontFamily=`'${S.font==='Pixel'?'Press Start 2P':S.font}',sans-serif`;c.classList.toggle('retro',S.skin==='retro');
+  $('photo').style.backgroundImage=S.photo?`url(${S.photo})`:'none';$('photo').style.opacity=S.photoA/100;
+  $('title').textContent=S.lbl||'clock.exe';
+  $('label').textContent=S.skin==='retro'?'':S.lbl;
+  $('analog').style.display=S.face==='analog'?'block':'none';
+  $('time').style.display=S.face==='analog'?'none':'block';
+  renderStk();tick();
+}
+function sync(){
+  for(const id of ['skin','face','font','hour12','tz','lang','shape','theme','fs','scale','glow','photoA'])$(id).value=S[id];
+  $('lbl').value=S.lbl;$('seconds').checked=S.seconds;$('showdate').checked=S.showdate;
+  for(const [k] of COLORS){document.querySelector(`[data-c=${k}]`).value=S[k];document.querySelector(`[data-h=${k}]`).value=S[k];document.querySelector(`[data-a=${k}]`).value=S[k+'A']}
+  $('code').value=enc();
+}
+function tick(){
+  const now=new Date(),tz=S.tz||undefined,h12=S.hour12==='1';
+  if(S.face==='analog'){
+    const p=Object.fromEntries(new Intl.DateTimeFormat('en-GB',{timeZone:tz,hour:'numeric',minute:'numeric',second:'numeric',hourCycle:'h23'}).formatToParts(now).map(x=>[x.type,+x.value]));
+    $('hh').setAttribute('transform',`rotate(${(p.hour%12)*30+p.minute/2})`);
+    $('mh').setAttribute('transform',`rotate(${p.minute*6+p.second/10})`);
+    $('sh').setAttribute('transform',`rotate(${p.second*6})`);$('sh').style.display=S.seconds?'':'none';
+  }else{
+    const o={timeZone:tz,hour:h12?'numeric':'2-digit',minute:'2-digit',hour12:h12};if(S.seconds)o.second='2-digit';
+    let t='',ap='';for(const p of new Intl.DateTimeFormat(S.lang,o).formatToParts(now)){if(p.type==='dayPeriod')ap=p.value;else t+=p.value}
+    $('time').innerHTML=t.trim()+(ap?`<span id="ampm">${ap.trim()}</span>`:'');
+  }
+  $('date').textContent=S.showdate?new Intl.DateTimeFormat(S.lang,{timeZone:tz,weekday:'long',month:'long',day:'numeric'}).format(now):'';
+}
+function renderStk(){
+  $('stickers').innerHTML='';
+  S.stk.forEach(s=>{
+    const d=document.createElement('div');d.className='stk'+(s.id===sel?' sel':'');
+    d.style.cssText+=`left:${s.x}%;top:${s.y}%;width:${s.w}px;height:${s.h}px;border-radius:${['0','14px','50%'][s.r]}`;
+    if(s.t==='i')d.style.backgroundImage=`url(${s.v})`;else{d.textContent=s.v;d.style.fontSize=Math.min(s.w,s.h)*.85+'px';d.style.lineHeight=1}
+    d.onpointerdown=e=>{if(!$('clock').classList.contains('edit'))return;e.preventDefault();sel=s.id;
+      const mv=ev=>{const b=$('clock').getBoundingClientRect();s.x=Math.max(0,Math.min(100,(ev.clientX-b.left)/b.width*100));s.y=Math.max(0,Math.min(100,(ev.clientY-b.top)/b.height*100));renderStk();syncTools()};
+      const up=()=>{removeEventListener('pointermove',mv);removeEventListener('pointerup',up);save()};
+      addEventListener('pointermove',mv);addEventListener('pointerup',up);renderStk();syncTools()};
+    $('stickers').appendChild(d);
+  });
+}
+function cur(){return S.stk.find(s=>s.id===sel)}
+function syncTools(){const s=cur();if(!s)return;$('sw').value=s.w;$('sh2').value=s.h;$('sshape').value=s.r}
+function addStk(t,v){const s={id:Date.now(),t,v,x:50,y:50,w:56,h:56,r:t==='i'?1:0};S.stk.push(s);sel=s.id;save();apply();sync();enterEdit()}
+function enterEdit(){$('panel').classList.remove('open');$('clock').classList.add('edit');document.body.classList.add('edit');$('tools').style.display='block';syncTools()}
+function exitEdit(){$('clock').classList.remove('edit');document.body.classList.remove('edit');$('tools').style.display='none';sel=null;save();renderStk();sync()}
+
+for(const id of ['skin','face','font','hour12','tz','lang','shape','theme'])$(id).onchange=e=>{S[id]=e.target.value;save();apply();sync()};
+for(const id of ['fs','scale','glow','photoA'])$(id).oninput=e=>{S[id]=+e.target.value;save();apply();sync()};
+$('lbl').oninput=e=>{S.lbl=e.target.value;save();apply()};
+$('seconds').onchange=e=>{S.seconds=e.target.checked;save();apply()};
+$('showdate').onchange=e=>{S.showdate=e.target.checked;save();apply()};
+document.querySelectorAll('[data-c]').forEach(el=>el.oninput=e=>{S[el.dataset.c]=e.target.value;save();apply();sync()});
+document.querySelectorAll('[data-a]').forEach(el=>el.oninput=e=>{S[el.dataset.a+'A']=+e.target.value;save();apply()});
+document.querySelectorAll('[data-h]').forEach(el=>el.oninput=e=>{let v=e.target.value.trim();if(v&&v[0]!=='#')v='#'+v;if(/^#[0-9a-f]{6}$/i.test(v)){S[el.dataset.h]=v;save();apply();document.querySelector(`[data-c=${el.dataset.h}]`).value=v;$('code').value=enc()}});
+$('photoIn').onchange=e=>{const f=e.target.files[0];if(f)compress(f,600,d=>{S.photo=d;save();apply();sync()})};
+$('photoX').onclick=()=>{S.photo='';save();apply();sync()};
+$('addE').onclick=()=>{const v=$('emoji').value.trim();if(v){addStk('e',v);$('emoji').value=''}};
+$('stkIn').onchange=e=>{const f=e.target.files[0];if(f)compress(f,200,d=>addStk('i',d))};
+$('edit').onclick=()=>{if(!S.stk.length)return alert('Add an emoji or image sticker first.');sel=S.stk[0].id;enterEdit();renderStk()};
+$('sw').oninput=e=>{const s=cur();if(s){s.w=+e.target.value;renderStk()}};
+$('sh2').oninput=e=>{const s=cur();if(s){s.h=+e.target.value;renderStk()}};
+$('sshape').onchange=e=>{const s=cur();if(s){s.r=+e.target.value;renderStk()}};
+$('sdel').onclick=()=>{S.stk=S.stk.filter(s=>s.id!==sel);sel=S.stk[0]?S.stk[0].id:null;save();renderStk();if(!sel)exitEdit()};
+$('sdone').onclick=exitEdit;
+$('gear').onclick=()=>{if($('clock').classList.contains('edit'))exitEdit();$('panel').classList.add('open')};
+$('close').onclick=()=>$('panel').classList.remove('open');
+$('copy').onclick=()=>{$('code').select();try{navigator.clipboard.writeText($('code').value)}catch(e){document.execCommand('copy')}};
+$('load').onclick=()=>{try{S={...JSON.parse(JSON.stringify(DEF)),...JSON.parse(decodeURIComponent(escape(atob($('code').value.trim()))))};save();apply();sync()}catch(e){alert('That code did not work. Copy it again from your other device.')}};
+$('reset').onclick=()=>{S=JSON.parse(JSON.stringify(DEF));save();apply();sync()};
+
+sync();apply();setInterval(tick,1000);
+</script>
+</body>
+</html>
