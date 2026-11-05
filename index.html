@@ -22,6 +22,14 @@ html,body{height:100%;margin:0;background:transparent;font-family:'Quicksand',sy
 #clock.retro #bar{display:flex}
 #clock.retro{box-shadow:4px 4px 0 var(--accent)}
 #body{position:relative;padding:20px 32px 16px}
+#inner{transform-origin:center}
+.ln{line-height:1.02;white-space:nowrap}
+.dv{width:55%;margin:.1em auto;border-top:.06em dotted var(--accent);opacity:.9}
+.pill{display:inline-block;margin-top:.15em;padding:.12em .7em;border:.08em solid var(--accent);border-radius:999px;color:var(--accent);text-shadow:none;line-height:1.3}
+#date{letter-spacing:.08em}
+#clock.fill{transform:none;width:var(--cw,100%);height:var(--ch,100%);min-width:0;display:flex;flex-direction:column}
+#clock.fill #body{flex:1;min-height:0;padding:12px;display:flex;align-items:center;justify-content:center;overflow:hidden}
+#clock.fill #inner{flex:none}
 #label{color:var(--accent);font-size:calc(var(--fs)*.22);min-height:0}
 #time{color:var(--ink);font-size:var(--fs);line-height:1.05;white-space:nowrap;text-shadow:0 0 var(--glowpx) var(--glow);font-variant-numeric:tabular-nums}
 #ampm{font-size:.38em;margin-left:.2em;vertical-align:.7em}
@@ -57,10 +65,12 @@ hr{border:0;border-top:1px solid var(--accent);opacity:.4;margin:12px 0}
   <div id="photo"></div><div id="tint"></div>
   <div id="bar"><span id="title"></span><span><i></i><i></i><i></i></span></div>
   <div id="body">
+    <div id="inner">
     <div id="label"></div>
     <div id="time"></div>
     <svg id="analog" viewBox="-50 -50 100 100"><circle r="47" stroke-width="1.5"/><g id="ticks" stroke-width="1.5"></g><line id="hh" y2="-24" stroke-width="3"/><line id="mh" y2="-35" stroke-width="2"/><line id="sh" y2="-39" stroke-width="1"/><circle r="2" style="fill:var(--ink)"/></svg>
     <div id="date"></div>
+    </div>
   </div>
   <div id="stickers"></div>
   <button id="gear" aria-label="Settings">⚙</button>
@@ -87,6 +97,10 @@ hr{border:0;border-top:1px solid var(--accent);opacity:.4;margin:12px 0}
   <div class="row"><label for="showdate">Show date</label><input type="checkbox" id="showdate"></div>
   <div class="row"><label for="lang">Language</label><select id="lang"><option value="en">English</option><option value="ja">日本語</option><option value="ko">한국어</option><option value="es">Español</option></select></div>
   <h3>Size and glow</h3>
+  <div class="row"><label for="fill">Fill frame (no empty space)</label><input type="checkbox" id="fill"></div>
+  <div class="row"><label for="layout">Time layout</label><select id="layout"><option value="auto">Auto</option><option value="h">Horizontal</option><option value="v">Vertical</option></select></div>
+  <div class="row"><label for="cw">Box width (Fill frame)</label><input type="range" id="cw" min="20" max="100"></div>
+  <div class="row"><label for="ch">Box height (Fill frame)</label><input type="range" id="ch" min="20" max="100"></div>
   <div class="row"><label for="fs">Font size</label><input type="range" id="fs" min="20" max="140"></div>
   <div class="row"><label for="scale">Widget scale (100 = fill frame)</label><input type="range" id="scale" min="50" max="200"></div>
   <div class="row"><label for="glow">Glow intensity</label><input type="range" id="glow" min="0" max="40"></div>
@@ -106,7 +120,7 @@ hr{border:0;border-top:1px solid var(--accent);opacity:.4;margin:12px 0}
 <script>
 const FONTS=['Quicksand','Orbitron','Share Tech Mono','VT323','Press Start 2P','DM Mono','Space Mono','Major Mono Display','Audiowide','Bungee','Righteous','Pacifico','Syne Mono','Silkscreen','Pixelify Sans','DotGothic16','Jersey 10','Tiny5','Micro 5'];
 const ZONES=['','America/Los_Angeles','America/Denver','America/Chicago','America/New_York','America/Sao_Paulo','Europe/London','Europe/Paris','Africa/Cairo','Asia/Dubai','Asia/Kolkata','Asia/Bangkok','Asia/Shanghai','Asia/Seoul','Asia/Tokyo','Australia/Sydney','Pacific/Auckland'];
-const DEF={skin:'modern',face:'digital',font:'Quicksand',hour12:'1',tz:'',lbl:'',seconds:false,showdate:true,lang:'en',shape:'curved',theme:'auto',fs:64,scale:100,glow:12,
+const DEF={skin:'modern',face:'digital',font:'Quicksand',hour12:'1',tz:'',lbl:'',seconds:false,showdate:true,fill:true,layout:'auto',cw:100,ch:100,lang:'en',shape:'curved',theme:'auto',fs:64,scale:100,glow:12,
   ink:'#c2417f',inkA:100,glowC:'#ff8ac4',glowA:100,accent:'#e9a3c9',accentA:100,bg:'#fff7fb',bgA:100,photo:'',photoA:100,stk:[]};
 const COLORS=[['ink','Display color'],['glowC','Glow color'],['accent','Accent (border, date, title bar)'],['bg','Clock box background']];
 const KEY='clock-widget-v2';
@@ -131,7 +145,7 @@ function apply(){
   const r=document.documentElement.style;
   r.setProperty('--ink',rgba(S.ink,S.inkA));r.setProperty('--glow',rgba(S.glowC,S.glowA));
   r.setProperty('--accent',rgba(S.accent,S.accentA));r.setProperty('--bg',S.bg);r.setProperty('--bga',S.bgA/100);
-  r.setProperty('--glowpx',S.glow+'px');r.setProperty('--fs',S.fs+'px');r.setProperty('--scale',S.scale/100);
+  r.setProperty('--cw',S.cw+'%');r.setProperty('--ch',S.ch+'%');r.setProperty('--glowpx',S.glow+'px');r.setProperty('--fs',S.fs+'px');r.setProperty('--scale',S.scale/100);
   r.setProperty('--radius',S.shape==='curved'?(S.skin==='retro'?'12px':'28px'):'0px');
   document.documentElement.dataset.theme=S.theme;
   const c=$('clock');c.style.fontFamily=`'${S.font==='Pixel'?'Press Start 2P':S.font}',sans-serif`;c.classList.toggle('retro',S.skin==='retro');
@@ -143,8 +157,8 @@ function apply(){
   renderStk();tick();
 }
 function sync(){
-  for(const id of ['skin','face','font','hour12','tz','lang','shape','theme','fs','scale','glow','photoA'])$(id).value=S[id];
-  $('lbl').value=S.lbl;$('seconds').checked=S.seconds;$('showdate').checked=S.showdate;
+  for(const id of ['skin','face','font','hour12','tz','lang','shape','theme','layout','fs','scale','glow','cw','ch','photoA'])$(id).value=S[id];
+  $('lbl').value=S.lbl;$('seconds').checked=S.seconds;$('showdate').checked=S.showdate;$('fill').checked=S.fill;
   for(const [k] of COLORS){document.querySelector(`[data-c=${k}]`).value=S[k];document.querySelector(`[data-h=${k}]`).value=S[k];document.querySelector(`[data-a=${k}]`).value=S[k+'A']}
   $('code').value=enc();
 }
@@ -157,19 +171,42 @@ function tick(){
     $('sh').setAttribute('transform',`rotate(${p.second*6})`);$('sh').style.display=S.seconds?'':'none';
   }else{
     const o={timeZone:tz,hour:h12?'numeric':'2-digit',minute:'2-digit',hour12:h12};if(S.seconds)o.second='2-digit';
-    let t='',ap='';for(const p of new Intl.DateTimeFormat(S.lang,o).formatToParts(now)){if(p.type==='dayPeriod')ap=p.value;else t+=p.value}
-    $('time').innerHTML=t.trim()+(ap?`<span id="ampm">${ap.trim()}</span>`:'');
+    const parts=new Intl.DateTimeFormat(S.lang,o).formatToParts(now);
+    const stacked=S.layout==='v'||(S.layout==='auto'&&S.fill&&innerHeight>innerWidth*0.8);
+    if(stacked){
+      const g=t=>(parts.find(p=>p.type===t)||{}).value;
+      const segs=['hour','minute','second'].filter(g).map(t=>`<div class="ln">${g(t)}</div>`);
+      let html=segs.join('<div class="dv"></div>');
+      const ap=g('dayPeriod');if(ap)html+=`<div class="ln" style="font-size:.3em"><span class="pill">${ap.trim()}</span></div>`;
+      $('time').innerHTML=html;
+    }else{
+      let t='',ap='';for(const p of parts){if(p.type==='dayPeriod')ap=p.value;else t+=p.value}
+      $('time').innerHTML=t.trim()+(ap?`<span id="ampm">${ap.trim()}</span>`:'');
+    }
   }
-  $('date').textContent=S.showdate?new Intl.DateTimeFormat(S.lang,{timeZone:tz,weekday:'long',day:'numeric'}).format(now):'';
+  $('date').textContent=S.showdate?new Intl.DateTimeFormat(S.lang,{timeZone:tz,weekday:'long'}).format(now):'';
   fit();
 }
 function fit(){
-  const c=$('clock'),w=c.offsetWidth,h=c.offsetHeight;
+  const c=$('clock'),i=$('inner'),root=document.documentElement.style;
+  c.classList.toggle('fill',!!S.fill);
+  if(S.fill){
+    root.setProperty('--scale',1);
+    i.style.transform='none';
+    const b=$('body'),cs=getComputedStyle(b);
+    const aw=b.clientWidth-parseFloat(cs.paddingLeft)-parseFloat(cs.paddingRight);
+    const ah=b.clientHeight-parseFloat(cs.paddingTop)-parseFloat(cs.paddingBottom);
+    const w=i.offsetWidth,h=i.offsetHeight;
+    if(w&&h&&aw>0&&ah>0)i.style.transform=`scale(${Math.min(aw/w,ah/h)*S.scale/100})`;
+    return;
+  }
+  i.style.transform='none';
+  const w=c.offsetWidth,h=c.offsetHeight;
   if(!w||!h)return;
   const k=Math.min((innerWidth-16)/w,(innerHeight-16)/h)*S.scale/100;
-  document.documentElement.style.setProperty('--scale',k);
+  root.setProperty('--scale',k);
 }
-addEventListener('resize',fit);
+addEventListener('resize',tick);
 function renderStk(){
   $('stickers').innerHTML='';
   S.stk.forEach(s=>{
@@ -189,11 +226,12 @@ function addStk(t,v){const s={id:Date.now(),t,v,x:50,y:50,w:56,h:56,r:t==='i'?1:
 function enterEdit(){$('panel').classList.remove('open');$('clock').classList.add('edit');document.body.classList.add('edit');$('tools').style.display='block';syncTools()}
 function exitEdit(){$('clock').classList.remove('edit');document.body.classList.remove('edit');$('tools').style.display='none';sel=null;save();renderStk();sync()}
 
-for(const id of ['skin','face','font','hour12','tz','lang','shape','theme'])$(id).onchange=e=>{S[id]=e.target.value;save();apply();sync()};
-for(const id of ['fs','scale','glow','photoA'])$(id).oninput=e=>{S[id]=+e.target.value;save();apply();sync()};
+for(const id of ['skin','face','font','hour12','tz','lang','shape','theme','layout'])$(id).onchange=e=>{S[id]=e.target.value;save();apply();sync()};
+for(const id of ['fs','scale','glow','cw','ch','photoA'])$(id).oninput=e=>{S[id]=+e.target.value;save();apply();sync()};
 $('lbl').oninput=e=>{S.lbl=e.target.value;save();apply()};
 $('seconds').onchange=e=>{S.seconds=e.target.checked;save();apply()};
 $('showdate').onchange=e=>{S.showdate=e.target.checked;save();apply()};
+$('fill').onchange=e=>{S.fill=e.target.checked;save();apply()};
 document.querySelectorAll('[data-c]').forEach(el=>el.oninput=e=>{S[el.dataset.c]=e.target.value;save();apply();sync()});
 document.querySelectorAll('[data-a]').forEach(el=>el.oninput=e=>{S[el.dataset.a+'A']=+e.target.value;save();apply()});
 document.querySelectorAll('[data-h]').forEach(el=>el.oninput=e=>{let v=e.target.value.trim();if(v&&v[0]!=='#')v='#'+v;if(/^#[0-9a-f]{6}$/i.test(v)){S[el.dataset.h]=v;save();apply();document.querySelector(`[data-c=${el.dataset.h}]`).value=v;$('code').value=enc()}});
