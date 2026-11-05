@@ -31,7 +31,8 @@ html,body{height:100%;margin:0;background:transparent;font-family:'Quicksand',sy
 .stk{position:absolute;transform:translate(-50%,-50%);display:flex;align-items:center;justify-content:center;background-size:cover;background-position:center;pointer-events:none;user-select:none}
 .edit .stk{pointer-events:auto;cursor:grab;outline:1px dashed var(--accent)}
 .stk.sel{outline:2px solid var(--ink)}
-#gear{position:fixed;top:8px;right:8px;width:30px;height:30px;border:0;border-radius:50%;background:var(--panel);color:var(--text);opacity:.35;cursor:pointer;font-size:16px;z-index:5}
+#gear{position:absolute;left:6px;top:6px;width:26px;height:26px;padding:0;border:0;border-radius:50%;background:transparent;color:var(--ink);opacity:.4;cursor:pointer;font-size:15px;z-index:5}
+#clock.retro #gear{top:34px}
 #gear:hover,#gear:focus-visible{opacity:1}
 #panel{position:fixed;inset:0;background:var(--panel);color:var(--text);overflow:auto;padding:14px 16px 24px;display:none;font-size:14px;z-index:9}
 #panel.open{display:block}
@@ -62,8 +63,8 @@ hr{border:0;border-top:1px solid var(--accent);opacity:.4;margin:12px 0}
     <div id="date"></div>
   </div>
   <div id="stickers"></div>
+  <button id="gear" aria-label="Settings">⚙</button>
 </div></div>
-<button id="gear" aria-label="Settings">⚙</button>
 
 <div id="tools">
   <div class="row"><label>Width</label><input type="range" id="sw" min="16" max="300"><label>Height</label><input type="range" id="sh2" min="16" max="300"></div>
@@ -159,7 +160,7 @@ function tick(){
     let t='',ap='';for(const p of new Intl.DateTimeFormat(S.lang,o).formatToParts(now)){if(p.type==='dayPeriod')ap=p.value;else t+=p.value}
     $('time').innerHTML=t.trim()+(ap?`<span id="ampm">${ap.trim()}</span>`:'');
   }
-  $('date').textContent=S.showdate?new Intl.DateTimeFormat(S.lang,{timeZone:tz,weekday:'long',month:'long',day:'numeric'}).format(now):'';
+  $('date').textContent=S.showdate?new Intl.DateTimeFormat(S.lang,{timeZone:tz,weekday:'long',day:'numeric'}).format(now):'';
 }
 function renderStk(){
   $('stickers').innerHTML='';
